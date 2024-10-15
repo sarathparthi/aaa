@@ -7,24 +7,16 @@ const app = express();
 const port = 3001;
 
 // Middleware
-app.use(bodyParser.json());
+app.use(bodyParser.json()); // Parse incoming JSON requests
 app.use(cors()); // Allow requests from the frontend
 
 // Create MySQL connection
-const db = mysql.createConnection({
+const db = mysql.createPool({
+  connectionLimit: 10, // Adjust as needed
   host: 'localhost',
   user: 'root',
   password: 'Mrwizard@19', // Replace with your actual password
   database: 'base' // Replace with your database name
-});
-
-// Connect to MySQL
-db.connect((err) => {
-  if (err) {
-    console.error('Error connecting to MySQL:', err);
-    return;
-  }
-  console.log('Connected to MySQL');
 });
 
 // Endpoint to handle data submission
@@ -58,6 +50,19 @@ app.get('/search-product', (req, res) => {
     }
   });
 });
+
+// Endpoint to fetch all products
+app.get('/all-products', (req, res) => {
+  const sql = 'SELECT * FROM products';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching products:', err.message);
+      return res.status(500).send('Failed to fetch products: ' + err.message);
+    }
+    res.json(results);
+  });
+});
+
 
 // Start the server
 app.listen(port, () => {
